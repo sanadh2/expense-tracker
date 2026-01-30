@@ -1,8 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Expense Tracker
+
+A Next.js expense tracking app with authentication powered by [Better Auth](https://better-auth.com), [Drizzle ORM](https://orm.drizzle.team), and PostgreSQL.
+
+## Tech Stack
+
+- **Framework**: Next.js 16
+- **Auth**: Better Auth (email/password)
+- **Database**: PostgreSQL with Drizzle ORM
+- **Styling**: Tailwind CSS
 
 ## Getting Started
 
-First, run the development server:
+### 1. Set up PostgreSQL
+
+Create a PostgreSQL database and note the connection string.
+
+### 2. Configure environment variables
+
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Required variables:
+- `DATABASE_URL` - PostgreSQL connection string (e.g. `postgresql://user:password@localhost:5432/expense_tracker`)
+- `BETTER_AUTH_SECRET` - Generate with `openssl rand -base64 32`
+- `NEXT_PUBLIC_APP_URL` - Your app URL (e.g. `http://localhost:3000` for dev)
+
+### 3. Run database migrations
+
+```bash
+npm run db:generate  # Generate migrations (already done)
+npm run db:migrate   # Apply migrations to your database
+```
+
+Or use `npm run db:push` to push schema directly (useful for development).
+
+### 4. Start the development server
 
 ```bash
 npm run dev
