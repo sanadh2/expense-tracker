@@ -47,7 +47,7 @@
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 1rem;
   /* TanStack/Tailwind inspired - clean neutral base */
   --background: oklch(0.985 0.002 250);
   --background-pattern: radial-gradient(

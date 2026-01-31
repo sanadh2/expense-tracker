@@ -23,7 +23,7 @@ export default async function Home() {
           </div>
         </header>
 
-        <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-10 sm:px-6">
+        <main className="mx-auto container max-w-5xl">
           <div>
             <p className="text-muted-foreground text-sm">
               Welcome back,{" "}

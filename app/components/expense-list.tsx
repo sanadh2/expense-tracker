@@ -1,9 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { SearchIcon } from "lucide-react";
+import { MoreVertical, PencilIcon, SearchIcon, Trash2Icon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -107,7 +113,7 @@ export function ExpenseList({
             <TableHead className="px-4">Subcategory</TableHead>
             <TableHead className="px-4">Date</TableHead>
             <TableHead className="px-4">Note</TableHead>
-            <TableHead className="w-[120px] px-4 text-right">Actions</TableHead>
+            <TableHead className="w-[60px] px-4 text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -207,7 +213,7 @@ export function ExpenseList({
             <TableHead className="px-4">Subcategory</TableHead>
             <TableHead className="px-4">Date</TableHead>
             <TableHead className="min-w-[120px] px-4">Note</TableHead>
-            <TableHead className="w-[120px] px-4 text-right">Actions</TableHead>
+            <TableHead className="w-[60px] px-4 text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -239,22 +245,33 @@ export function ExpenseList({
                   {expense.note ?? "—"}
                 </TableCell>
                 <TableCell className="px-4 text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingExpense(expense)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setDeletingExpense(expense)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8"
+                        aria-label="Actions"
+                      >
+                        <MoreVertical className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => setEditingExpense(expense)}
+                      >
+                        <PencilIcon className="size-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => setDeletingExpense(expense)}
+                      >
+                        <Trash2Icon className="size-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))
