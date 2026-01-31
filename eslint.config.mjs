@@ -61,10 +61,6 @@ const eslintConfig = defineConfig([
 			"react/no-unknown-property": ["error", { ignore: ["jsx", "global"] }],
 			"react/self-closing-comp": ["error", { component: true, html: true }],
 			"react/jsx-boolean-value": ["error", "never"],
-			"react/jsx-curly-brace-presence": [
-				"error",
-				{ props: "never", children: "never" },
-			],
 			"react/jsx-fragments": ["error", "syntax"],
 			"react/jsx-no-useless-fragment": "error",
 			"react/jsx-pascal-case": "error",
@@ -234,7 +230,6 @@ const eslintConfig = defineConfig([
 			"no-useless-rename": "error",
 			"no-void": "error",
 			eqeqeq: ["error", "always", { null: "ignore" }],
-			curly: ["error", "all"],
 			"dot-notation": "error",
 			"no-else-return": ["error", { allowElseIf: false }],
 			"no-lonely-if": "error",

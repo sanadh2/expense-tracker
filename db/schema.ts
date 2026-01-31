@@ -77,9 +77,25 @@ export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   expenses: many(expense),
+  budgets: many(budget),
 }));
 
+export const budget = pgTable("budget", {
+  id: text("id").primaryKey(),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  category: text("category").notNull(), // main category (e.g. "Food & Dining")
+  amount: integer("amount").notNull(), // monthly limit in paise
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
 export const expenseRelations = relations(expense, ({ one }) => ({
+  user: one(user),
+}));
+
+export const budgetRelations = relations(budget, ({ one }) => ({
   user: one(user),
 }));
 

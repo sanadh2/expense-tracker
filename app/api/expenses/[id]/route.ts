@@ -31,16 +31,16 @@ export async function GET(
 
   const { id } = await params;
 
-  const [found] = await db
+  const foundList = await db
     .select()
     .from(expense)
     .where(and(eq(expense.id, id), eq(expense.userId, session.user.id)));
 
-  if (!found) {
+  if (foundList.length === 0) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json(found);
+  return NextResponse.json(foundList[0]);
 }
 
 export async function PUT(
@@ -66,7 +66,7 @@ export async function PUT(
     );
   }
 
-  const [updated] = await db
+  const updatedList = await db
     .update(expense)
     .set({
       ...(parsed.data.amount !== undefined && {
@@ -82,11 +82,11 @@ export async function PUT(
     .where(and(eq(expense.id, id), eq(expense.userId, session.user.id)))
     .returning();
 
-  if (!updated) {
+  if (updatedList.length === 0) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json(updated);
+  return NextResponse.json(updatedList[0]);
 }
 
 export async function DELETE(
@@ -103,12 +103,12 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const [deleted] = await db
+  const deletedList = await db
     .delete(expense)
     .where(and(eq(expense.id, id), eq(expense.userId, session.user.id)))
     .returning();
 
-  if (!deleted) {
+  if (deletedList.length === 0) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

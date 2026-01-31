@@ -70,6 +70,11 @@ function formatDateDisplay(date: Date): string {
 
 const DEFAULT_CATEGORY = "Food & Dining › Groceries";
 
+function getSubmitButtonText(isPending: boolean, isEdit: boolean): string {
+  if (isPending) return isEdit ? "Saving..." : "Adding...";
+  return isEdit ? "Save" : "Add expense";
+}
+
 function getDefaultValues(
   expense: Expense | null | undefined,
 ): ExpenseFormData {
@@ -131,21 +136,19 @@ function ExpenseFormContent({
     }
   });
 
-  const apiError = error as Error & { fieldErrors?: Record<string, string[]> };
+  const apiError = error as
+    | (Error & {
+        fieldErrors?: Record<string, string[]>;
+      })
+    | null;
   const hasFieldErrors = Boolean(apiError?.fieldErrors);
   const fieldErrorMessages = hasFieldErrors
-    ? Object.values(apiError.fieldErrors ?? {})
+    ? Object.values(apiError?.fieldErrors ?? {})
         .flat()
         .join(", ")
     : "";
 
-  const submitButtonText = isPending
-    ? isEdit
-      ? "Saving..."
-      : "Adding..."
-    : isEdit
-      ? "Save"
-      : "Add expense";
+  const submitButtonText = getSubmitButtonText(Boolean(isPending), isEdit);
 
   return (
     <Form {...form}>
