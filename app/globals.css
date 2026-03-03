@@ -48,7 +48,6 @@
 
 :root {
   --radius: 1rem;
-  /* TanStack/Tailwind inspired - clean neutral base */
   --background: oklch(0.985 0.002 250);
   --background-pattern: radial-gradient(
       circle at 1px 1px,
@@ -61,7 +60,6 @@
   --card-foreground: oklch(0.13 0.02 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.13 0.02 260);
-  /* Cyan primary - Tailwind/TanStack signature */
   --primary: oklch(0.55 0.2 195);
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.96 0.01 250);

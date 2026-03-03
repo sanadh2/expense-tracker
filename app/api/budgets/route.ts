@@ -1,10 +1,8 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { db } from "@/db";
-import { budget } from "@/db/schema";
+import { budgetRepository } from "@/db/repositories";
 import { auth } from "@/lib/auth";
 import {
   EXPENSE_CATEGORIES,
@@ -30,10 +28,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const budgets = await db
-    .select()
-    .from(budget)
-    .where(eq(budget.userId, session.user.id));
+  const budgets = await budgetRepository.findAllByUserId(session.user.id);
 
   return NextResponse.json(budgets);
 }
@@ -61,33 +56,32 @@ export async function POST(request: Request) {
   const PAISE_PER_RUPEE = 100;
   const amountInPaise = Math.round(amount * PAISE_PER_RUPEE);
 
-  const existingList = await db
-    .select()
-    .from(budget)
-    .where(
-      and(eq(budget.userId, session.user.id), eq(budget.category, category)),
-    )
-    .limit(1);
+  const existing = await budgetRepository.findByUserIdAndCategory(
+    session.user.id,
+    category,
+  );
 
-  if (existingList.length > 0) {
-    const existing = existingList[0];
-    const [updated] = await db
-      .update(budget)
-      .set({ amount: amountInPaise, updatedAt: new Date() })
-      .where(eq(budget.id, existing.id))
-      .returning();
+  if (existing) {
+    const updated = await budgetRepository.updateByIdAndUserId(
+      existing.id,
+      session.user.id,
+      { amount: amountInPaise },
+    );
+    if (!updated) {
+      return NextResponse.json(
+        { error: "Failed to update budget" },
+        { status: 500 },
+      );
+    }
     return NextResponse.json(updated);
   }
 
-  const [newBudget] = await db
-    .insert(budget)
-    .values({
-      id: crypto.randomUUID(),
-      userId: session.user.id,
-      category,
-      amount: amountInPaise,
-    })
-    .returning();
+  const newBudget = await budgetRepository.create({
+    id: crypto.randomUUID(),
+    userId: session.user.id,
+    category,
+    amount: amountInPaise,
+  });
 
   return NextResponse.json(newBudget);
 }

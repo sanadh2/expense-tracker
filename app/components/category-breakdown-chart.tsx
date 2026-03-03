@@ -1,6 +1,6 @@
 "use client";
 
-import { Pie, PieChart, ResponsiveContainer } from "recharts";
+import { Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,6 +31,30 @@ const formatCurrency = (paise: number) =>
     maximumFractionDigits: 0,
     minimumFractionDigits: 0,
   }).format(paise / 100);
+
+/** Tooltip content: full category name + amount + percentage */
+function ChartTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: number;
+    payload: { percentage: number };
+  }>;
+}) {
+  if (!active || !payload?.length) return null;
+  const { name, value, payload: p } = payload[0];
+  return (
+    <div className="rounded-lg border border-border/60 bg-card px-3 py-2 text-sm shadow-sm">
+      <p className="font-medium">{name}</p>
+      <p className="text-muted-foreground">
+        {formatCurrency(value)} ({p.percentage.toFixed(0)}%)
+      </p>
+    </div>
+  );
+}
 
 export function CategoryBreakdownChart() {
   const { data: expenses = [], isLoading } = useExpenses();
@@ -85,9 +109,10 @@ export function CategoryBreakdownChart() {
         </p>
       </CardHeader>
       <CardContent>
-        <div className="h-[280px]">
+        <div className="h-[280px] overflow-visible">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
+            <PieChart margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+              <Tooltip content={<ChartTooltip />} />
               <Pie
                 data={chartData}
                 cx="50%"
@@ -97,9 +122,9 @@ export function CategoryBreakdownChart() {
                 paddingAngle={2}
                 dataKey="value"
                 nameKey="name"
-                label={({ name, percent }) =>
+                label={({ percent }) =>
                   (percent ?? 0) * 100 >= 5
-                    ? `${name ?? ""} (${((percent ?? 0) * 100).toFixed(0)}%)`
+                    ? `${((percent ?? 0) * 100).toFixed(0)}%`
                     : ""
                 }
                 labelLine={false}
@@ -107,11 +132,11 @@ export function CategoryBreakdownChart() {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {categoryData.slice(0, 6).map((item, i) => (
             <div
               key={item.category}
-              className="flex items-center gap-2 text-sm"
+              className="flex min-w-0 items-center gap-2 text-sm"
             >
               <span
                 className="size-2.5 shrink-0 rounded-full"
@@ -119,10 +144,10 @@ export function CategoryBreakdownChart() {
                   backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
                 }}
               />
-              <span className="truncate text-muted-foreground">
+              <span className="min-w-0 flex-1 wrap-break-word text-muted-foreground">
                 {item.category}
               </span>
-              <span className="ml-auto font-medium">
+              <span className="shrink-0 font-medium">
                 {formatCurrency(item.amount)}
               </span>
             </div>

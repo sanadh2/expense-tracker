@@ -8,7 +8,6 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
-// Better Auth core schema - table names match Better Auth expectations
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -64,7 +63,7 @@ export const expense = pgTable("expense", {
   userId: text("userId")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  amount: integer("amount").notNull(), // stored in paise (1 ₹ = 100 paise)
+  amount: integer("amount").notNull(),
   category: text("category").notNull(),
   note: text("note"),
   date: date("date", { mode: "string" }).notNull(),
@@ -72,7 +71,6 @@ export const expense = pgTable("expense", {
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
 
-// Relations for Drizzle (optional, helps with joins)
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -85,8 +83,8 @@ export const budget = pgTable("budget", {
   userId: text("userId")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  category: text("category").notNull(), // main category (e.g. "Food & Dining")
-  amount: integer("amount").notNull(), // monthly limit in paise
+  category: text("category").notNull(),
+  amount: integer("amount").notNull(),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });

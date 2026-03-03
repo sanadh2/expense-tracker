@@ -1,10 +1,8 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { db } from "@/db";
-import { expense } from "@/db/schema";
+import { expenseRepository } from "@/db/repositories";
 import { auth } from "@/lib/auth";
 
 const updateExpenseSchema = z.object({
@@ -31,16 +29,13 @@ export async function GET(
 
   const { id } = await params;
 
-  const foundList = await db
-    .select()
-    .from(expense)
-    .where(and(eq(expense.id, id), eq(expense.userId, session.user.id)));
+  const found = await expenseRepository.findByIdAndUserId(id, session.user.id);
 
-  if (foundList.length === 0) {
+  if (!found) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json(foundList[0]);
+  return NextResponse.json(found);
 }
 
 export async function PUT(
@@ -66,27 +61,32 @@ export async function PUT(
     );
   }
 
-  const updatedList = await db
-    .update(expense)
-    .set({
-      ...(parsed.data.amount !== undefined && {
-        amount: Math.round(parsed.data.amount * 100),
-      }),
-      ...(parsed.data.category !== undefined && {
-        category: parsed.data.category,
-      }),
-      ...(parsed.data.note !== undefined && { note: parsed.data.note }),
-      ...(parsed.data.date !== undefined && { date: parsed.data.date }),
-      updatedAt: new Date(),
-    })
-    .where(and(eq(expense.id, id), eq(expense.userId, session.user.id)))
-    .returning();
+  const updateData: {
+    amount?: number;
+    category?: string;
+    note?: string | null;
+    date?: string;
+  } = {};
+  if (parsed.data.amount !== undefined) {
+    updateData.amount = Math.round(parsed.data.amount * 100);
+  }
+  if (parsed.data.category !== undefined) {
+    updateData.category = parsed.data.category;
+  }
+  if (parsed.data.note !== undefined) updateData.note = parsed.data.note;
+  if (parsed.data.date !== undefined) updateData.date = parsed.data.date;
 
-  if (updatedList.length === 0) {
+  const updated = await expenseRepository.updateByIdAndUserId(
+    id,
+    session.user.id,
+    updateData,
+  );
+
+  if (!updated) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json(updatedList[0]);
+  return NextResponse.json(updated);
 }
 
 export async function DELETE(
@@ -103,12 +103,12 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const deletedList = await db
-    .delete(expense)
-    .where(and(eq(expense.id, id), eq(expense.userId, session.user.id)))
-    .returning();
+  const deleted = await expenseRepository.deleteByIdAndUserId(
+    id,
+    session.user.id,
+  );
 
-  if (deletedList.length === 0) {
+  if (!deleted) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

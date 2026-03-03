@@ -31,10 +31,8 @@ const eslintConfig = defineConfig([
 			"@tanstack/query": tanstackQuery,
 		},
 		rules: {
-			// Prettier
 			"prettier/prettier": "error",
 
-			// Import sorting
 			"simple-import-sort/imports": [
 				"error",
 				{
@@ -50,12 +48,10 @@ const eslintConfig = defineConfig([
 			],
 			"simple-import-sort/exports": "error",
 
-			// Import rules (requires eslint-plugin-import)
 			"import/no-duplicates": "error",
 
-			// React rules (Next.js config includes these, but we add stricter ones)
-			"react/react-in-jsx-scope": "off", // Not needed in Next.js
-			"react/prop-types": "off", // Using TypeScript instead
+			"react/react-in-jsx-scope": "off",
+			"react/prop-types": "off",
 			"react/display-name": "off",
 			"react/no-unescaped-entities": "warn",
 			"react/no-unknown-property": ["error", { ignore: ["jsx", "global"] }],
@@ -76,7 +72,6 @@ const eslintConfig = defineConfig([
 				},
 			],
 
-			// React Hooks rules (Next.js config includes these)
 			"react-hooks/rules-of-hooks": "error",
 			"react-hooks/exhaustive-deps": [
 				"warn",
@@ -85,7 +80,6 @@ const eslintConfig = defineConfig([
 				},
 			],
 
-			// JSX Accessibility rules (Next.js config includes these)
 			"jsx-a11y/alt-text": "error",
 			"jsx-a11y/anchor-has-content": "error",
 			"jsx-a11y/anchor-is-valid": [
@@ -124,7 +118,6 @@ const eslintConfig = defineConfig([
 			"jsx-a11y/scope": "error",
 			"jsx-a11y/tabindex-no-positive": "warn",
 
-			// TypeScript rules
 			"@typescript-eslint/no-unused-vars": [
 				"error",
 				{
@@ -164,12 +157,10 @@ const eslintConfig = defineConfig([
 			"@typescript-eslint/prefer-string-starts-ends-with": "error",
 			"@typescript-eslint/switch-exhaustiveness-check": "error",
 
-			// TanStack Query rules
 			"@tanstack/query/exhaustive-deps": "warn",
 			"@tanstack/query/no-rest-destructuring": "warn",
 			"@tanstack/query/stable-query-client": "error",
 
-			// General JavaScript/TypeScript best practices
 			"no-console": [
 				"warn",
 				{
@@ -214,7 +205,7 @@ const eslintConfig = defineConfig([
 					],
 				},
 			],
-			"no-return-await": "off", // Use @typescript-eslint/return-await instead
+			"no-return-await": "off",
 			"no-throw-literal": "error",
 			"no-unused-expressions": [
 				"error",
@@ -250,11 +241,11 @@ const eslintConfig = defineConfig([
 			"no-new-wrappers": "error",
 			"no-proto": "error",
 			"no-sequences": "error",
-			"no-shadow": "off", // Use @typescript-eslint/no-shadow instead
+			"no-shadow": "off",
 			"no-undef-init": "error",
 			"no-undefined": "off",
-			"no-use-before-define": "off", // Use @typescript-eslint/no-use-before-define instead
-			"no-duplicate-imports": "off", // Using simple-import-sort instead
+			"no-use-before-define": "off",
+			"no-duplicate-imports": "off",
 			"no-restricted-imports": [
 				"error",
 				{

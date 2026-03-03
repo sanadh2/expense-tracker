@@ -128,12 +128,8 @@ function ExpenseFormContent({
   });
 
   const handleFormSubmit = form.handleSubmit(async (data) => {
-    try {
-      await onSubmit(data);
-      onClose();
-    } catch {
-      // Error handled by parent
-    }
+    await onSubmit(data);
+    onClose();
   });
 
   const apiError = error as

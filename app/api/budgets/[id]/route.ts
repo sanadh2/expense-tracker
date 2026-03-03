@@ -1,10 +1,8 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { db } from "@/db";
-import { budget } from "@/db/schema";
+import { budgetRepository } from "@/db/repositories";
 import { auth } from "@/lib/auth";
 
 const updateBudgetSchema = z.object({
@@ -38,17 +36,17 @@ export async function PUT(
   const PAISE_PER_RUPEE = 100;
   const amountInPaise = Math.round(parsed.data.amount * PAISE_PER_RUPEE);
 
-  const updatedList = await db
-    .update(budget)
-    .set({ amount: amountInPaise, updatedAt: new Date() })
-    .where(and(eq(budget.id, id), eq(budget.userId, session.user.id)))
-    .returning();
+  const updated = await budgetRepository.updateByIdAndUserId(
+    id,
+    session.user.id,
+    { amount: amountInPaise },
+  );
 
-  if (updatedList.length === 0) {
+  if (!updated) {
     return NextResponse.json({ error: "Budget not found" }, { status: 404 });
   }
 
-  return NextResponse.json(updatedList[0]);
+  return NextResponse.json(updated);
 }
 
 export async function DELETE(
@@ -65,12 +63,12 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const deletedList = await db
-    .delete(budget)
-    .where(and(eq(budget.id, id), eq(budget.userId, session.user.id)))
-    .returning();
+  const deleted = await budgetRepository.deleteByIdAndUserId(
+    id,
+    session.user.id,
+  );
 
-  if (deletedList.length === 0) {
+  if (!deleted) {
     return NextResponse.json({ error: "Budget not found" }, { status: 404 });
   }
 
