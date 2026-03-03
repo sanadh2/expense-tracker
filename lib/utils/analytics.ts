@@ -114,6 +114,125 @@ export function getLastMonthRange(): { start: Date; end: Date } {
   return { start, end };
 }
 
+/** Get start/end of a specific calendar month (month 0-indexed) */
+export function getMonthRange(year: number, month: number): { start: Date; end: Date } {
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month + 1, 0);
+  return { start, end };
+}
+
+export interface WrappedStats {
+  year: number;
+  month: number;
+  monthLabel: string;
+  totalSpent: number;
+  transactionCount: number;
+  topCategoriesByAmount: { category: string; amount: number; percentage: number }[];
+  mostUsedCategory: string | null;
+  mostUsedCategoryCount: number;
+  biggestExpense: { amount: number; category: string; date: string } | null;
+  vsPreviousMonthPercent: number | null;
+}
+
+/**
+ * Stats for a "Wrapped" recap for a given month (e.g. last month).
+ * Use for Spotify-style monthly expense wrapped.
+ */
+export function getWrappedStats(
+  expenses: Expense[],
+  year: number,
+  month: number,
+): WrappedStats {
+  const { start, end } = getMonthRange(year, month);
+  const monthExpenses = filterExpensesByDateRange(expenses, start, end);
+  const totalSpent = sumPaise(monthExpenses);
+  const topByAmount = aggregateByMainCategory(monthExpenses).slice(0, 5);
+
+  const byFullCategory = new Map<string, number>();
+  for (const e of monthExpenses) {
+    byFullCategory.set(e.category, (byFullCategory.get(e.category) ?? 0) + 1);
+  }
+  const mostUsed = Array.from(byFullCategory.entries()).sort(
+    (a, b) => b[1] - a[1],
+  )[0];
+  const mostUsedCategory = mostUsed?.[0] ?? null;
+  const mostUsedCategoryCount = mostUsed?.[1] ?? 0;
+
+  const biggest = monthExpenses.length
+    ? monthExpenses.reduce((a, b) => (a.amount >= b.amount ? a : b))
+    : null;
+  const biggestExpense = biggest
+    ? {
+        amount: biggest.amount,
+        category: biggest.category,
+        date: biggest.date,
+      }
+    : null;
+
+  const prevMonth = month === 0 ? 11 : month - 1;
+  const prevYear = month === 0 ? year - 1 : year;
+  const { start: prevStart, end: prevEnd } = getMonthRange(prevYear, prevMonth);
+  const prevTotal = sumPaise(
+    filterExpensesByDateRange(expenses, prevStart, prevEnd),
+  );
+  const vsPreviousMonthPercent =
+    prevTotal > 0 && totalSpent > 0
+      ? Math.round(((totalSpent - prevTotal) / prevTotal) * 100)
+      : null;
+
+  const monthLabel = start.toLocaleDateString("en-IN", {
+    month: "long",
+    year: "numeric",
+  });
+
+  return {
+    year,
+    month,
+    monthLabel,
+    totalSpent,
+    transactionCount: monthExpenses.length,
+    topCategoriesByAmount: topByAmount.map((c) => ({
+      category: c.category,
+      amount: c.amount,
+      percentage: c.percentage,
+    })),
+    mostUsedCategory,
+    mostUsedCategoryCount,
+    biggestExpense,
+    vsPreviousMonthPercent,
+  };
+}
+
+/**
+ * Returns the most used full categories (e.g. "Food & Dining › Groceries") from last month,
+ * sorted by transaction count (desc), then by total amount (desc). Useful for suggesting
+ * categories in the add-expense form.
+ */
+export function getMostUsedCategoriesFromLastMonth(
+  expenses: Expense[],
+  limit = 8,
+): string[] {
+  const { start, end } = getLastMonthRange();
+  const lastMonth = filterExpensesByDateRange(expenses, start, end);
+  const byCategory = new Map<string, { count: number; amount: number }>();
+  for (const e of lastMonth) {
+    const cat = e.category;
+    const cur = byCategory.get(cat) ?? { count: 0, amount: 0 };
+    byCategory.set(cat, {
+      count: cur.count + 1,
+      amount: cur.amount + e.amount,
+    });
+  }
+  return Array.from(byCategory.entries())
+    .sort((a, b) => {
+      const [cA, cB] = [a[1].count, b[1].count];
+      if (cA !== cB) return cB - cA;
+      return b[1].amount - a[1].amount;
+    })
+    .slice(0, limit)
+    .map(([cat]) => cat);
+}
+
 export interface CategorySpend {
   category: string;
   amount: number;

@@ -1,8 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Sparkles } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -37,12 +38,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useExpenses } from "@/lib/hooks/use-expenses";
 import type { Expense } from "@/lib/types/expense";
 import {
   ALL_CATEGORY_VALUES,
   CATEGORY_SEPARATOR,
   EXPENSE_CATEGORIES,
 } from "@/lib/types/expense";
+import { getMostUsedCategoriesFromLastMonth } from "@/lib/utils/analytics";
 import type { ExpenseFormData } from "@/lib/validations/expense";
 import { expenseFormSchema } from "@/lib/validations/expense";
 
@@ -113,12 +116,14 @@ function ExpenseFormContent({
   onClose,
   isPending,
   error,
+  suggestedCategories,
 }: {
   expense?: Expense | null;
   onSubmit: (data: ExpenseFormData) => Promise<void>;
   onClose: () => void;
   isPending?: boolean;
   error?: Error | null;
+  suggestedCategories: string[];
 }) {
   const isEdit = Boolean(expense);
 
@@ -191,13 +196,37 @@ function ExpenseFormContent({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
+              {suggestedCategories.length > 0 && (
+                <div className="mb-2">
+                  <p className="text-muted-foreground mb-1.5 flex items-center gap-1 text-xs">
+                    <Sparkles className="size-3.5" />
+                    Suggested from last month
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {suggestedCategories.map((value) => (
+                      <Button
+                        key={value}
+                        type="button"
+                        variant={
+                          field.value === value ? "secondary" : "outline"
+                        }
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => field.onChange(value)}
+                      >
+                        {value}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
+                <SelectContent className="max-h-[min(80vh,28rem)]!">
                   {Object.entries(EXPENSE_CATEGORIES).map(
                     ([category, subcategories]) => (
                       <SelectGroup key={category}>
@@ -300,6 +329,12 @@ export function ExpenseModal({
   isPending,
   error,
 }: ExpenseModalProps) {
+  const { data: expenses = [] } = useExpenses();
+  const suggestedCategories = useMemo(() => {
+    if (expense) return [];
+    return getMostUsedCategoriesFromLastMonth(expenses, 5);
+  }, [expenses, expense]);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
@@ -317,6 +352,7 @@ export function ExpenseModal({
           onClose={onClose}
           isPending={isPending}
           error={error}
+          suggestedCategories={suggestedCategories}
         />
       </DialogContent>
     </Dialog>
