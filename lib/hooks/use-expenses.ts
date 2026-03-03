@@ -17,10 +17,56 @@ function sortByDateDesc(expenses: Expense[]) {
   );
 }
 
+export interface ExpenseListFilters {
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface ExpenseListResponse {
+  data: Expense[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+function buildExpenseParams(
+  filters: ExpenseListFilters,
+): Record<string, string> {
+  const params: Record<string, string> = {};
+  if (filters.startDate) params.startDate = filters.startDate;
+  if (filters.endDate) params.endDate = filters.endDate;
+  if (filters.search?.trim()) params.search = filters.search.trim();
+  if (filters.page != null) params.page = String(filters.page);
+  if (filters.limit != null) params.limit = String(filters.limit);
+  return params;
+}
+
+/** Fetches all expenses (no pagination). Used by dashboard charts/summary. */
 export function useExpenses() {
   return useQuery({
     queryKey: EXPENSES_QUERY_KEY,
     queryFn: () => api.get<Expense[]>("/api/expenses"),
+  });
+}
+
+const DEFAULT_PAGE_SIZE = 20;
+
+/** Fetches expenses with server-side filters and pagination. Used by expense list. */
+export function useExpensesList(
+  filters: ExpenseListFilters,
+  options?: { enabled?: boolean },
+) {
+  const page = filters.page ?? 1;
+  const limit = filters.limit ?? DEFAULT_PAGE_SIZE;
+  const params = buildExpenseParams({ ...filters, page, limit });
+
+  return useQuery({
+    queryKey: [...EXPENSES_QUERY_KEY, "list", params] as const,
+    queryFn: () => api.get<ExpenseListResponse>("/api/expenses", { params }),
+    enabled: options?.enabled ?? true,
   });
 }
 
@@ -34,6 +80,7 @@ export function useCreateExpense() {
       queryClient.setQueryData<Expense[]>(EXPENSES_QUERY_KEY, (old) =>
         sortByDateDesc([...(old ?? []), newExpense]),
       );
+      queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
     },
   });
 }
@@ -82,6 +129,7 @@ export function useUpdateExpense() {
         ) ?? [updatedExpense];
         return sortByDateDesc(mapped);
       });
+      queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
     },
   });
 }
@@ -104,6 +152,9 @@ export function useDeleteExpense() {
       if (context?.previous) {
         queryClient.setQueryData(EXPENSES_QUERY_KEY, context.previous);
       }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
     },
   });
 }

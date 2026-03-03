@@ -1,6 +1,5 @@
 "use client";
 
-// Query key factory for consistent cache keys across the app
 export const queryKeys = {
   all: ["api"] as const,
 };
