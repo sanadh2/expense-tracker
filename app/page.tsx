@@ -23,14 +23,11 @@ export default async function Home() {
           </div>
         </header>
 
-        <main className="mx-auto container max-w-5xl">
-          <div>
-            <p className="text-muted-foreground text-sm">
-              Welcome back,{" "}
-              <strong className="text-foreground">{session.user.name}</strong>
-            </p>
-          </div>
-
+        <main className="mx-auto w-full max-w-5xl px-4 pt-6 sm:px-6">
+          <p className="text-muted-foreground mb-8 text-sm">
+            Welcome back,{" "}
+            <strong className="text-foreground">{session.user.name}</strong>
+          </p>
           <ExpenseDashboard />
         </main>
       </div>

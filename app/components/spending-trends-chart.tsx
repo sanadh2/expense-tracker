@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
-import { CalendarIcon, SearchIcon } from "lucide-react";
+import { BarChart3, CalendarIcon, SearchIcon } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -200,38 +200,78 @@ export function SpendingTrendsChart() {
     dateRange?.from != null || searchInput.trim().length > 0;
 
   const getSubtitle = () => {
-    if (hasActiveFilters) return "Filtered view";
-    if (mode === "category") return "This month by category";
-    if (mode === "combined") return `${view} by category`;
-    return view;
+    if (hasActiveFilters) return getDateRangeLabel(dateRange) || "Custom range";
+    if (mode === "category") return "Totals by category in selected range";
+    if (mode === "combined") return `${view} breakdown by category`;
+    return `By ${view} · ${getDateRangeLabel({ from: rangeStart, to: rangeEnd })}`;
   };
   const subtitle = getSubtitle();
+  const showPeriodPills = (mode === "date" || mode === "combined");
 
   return (
-    <Card>
-      <CardHeader>
-        <div>
-          <CardTitle className="text-base">Spending trends</CardTitle>
-          <p className="text-muted-foreground text-xs">{subtitle}</p>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative min-w-[180px] flex-1">
-            <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <Input
-              type="search"
-              placeholder="Search by category or note..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-9"
-            />
+    <Card className="overflow-hidden">
+      <CardHeader className="space-y-3 pb-2">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="text-muted-foreground size-5" />
+            <div>
+              <CardTitle className="text-base">Spending over time</CardTitle>
+              <p className="text-muted-foreground text-xs">{subtitle}</p>
+            </div>
           </div>
+        </div>
+        {/* Chart type: primary control */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-lg border border-border/60 bg-muted/30 p-0.5">
+            <Button
+              variant={mode === "date" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 rounded-md px-3"
+              onClick={() => setMode("date")}
+            >
+              By time
+            </Button>
+            <Button
+              variant={mode === "category" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 rounded-md px-3"
+              onClick={() => setMode("category")}
+            >
+              By category
+            </Button>
+            <Button
+              variant={mode === "combined" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 rounded-md px-3"
+              onClick={() => setMode("combined")}
+            >
+              Stacked
+            </Button>
+          </div>
+          {showPeriodPills && (
+            <div className="flex gap-1">
+              {(["daily", "weekly", "monthly"] as const).map((v) => (
+                <Button
+                  key={v}
+                  variant={view === v ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-8 capitalize"
+                  onClick={() => setView(v)}
+                >
+                  {v}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+        {/* Filters row */}
+        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/20 px-3 py-2">
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="shrink-0">
-                <CalendarIcon className="mr-2 size-4" />
-                {getDateRangeLabel(dateRange)}
+              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-muted-foreground">
+                <CalendarIcon className="size-3.5" />
+                <span className="hidden sm:inline">{getDateRangeLabel(dateRange)}</span>
+                <span className="sm:hidden">Dates</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -244,73 +284,38 @@ export function SpendingTrendsChart() {
               />
             </PopoverContent>
           </Popover>
+          <div className="relative flex-1 min-w-[120px] max-w-[200px]">
+            <SearchIcon className="text-muted-foreground absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
+            <Input
+              type="search"
+              placeholder="Filter..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
           {hasActiveFilters && (
             <Button
               variant="ghost"
               size="sm"
+              className="h-8 text-muted-foreground"
               onClick={() => {
                 setDateRange(undefined);
                 setSearchInput("");
               }}
             >
-              Clear filters
+              Clear
             </Button>
-          )}
-          <div className="flex gap-1">
-            <Button
-              variant={mode === "date" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setMode("date")}
-            >
-              By date
-            </Button>
-            <Button
-              variant={mode === "category" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setMode("category")}
-            >
-              By category
-            </Button>
-            <Button
-              variant={mode === "combined" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setMode("combined")}
-            >
-              Combined
-            </Button>
-          </div>
-          {(mode === "date" || mode === "combined") && (
-            <div className="flex gap-1">
-              <Button
-                variant={view === "daily" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setView("daily")}
-              >
-                Daily
-              </Button>
-              <Button
-                variant={view === "weekly" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setView("weekly")}
-              >
-                Weekly
-              </Button>
-              <Button
-                variant={view === "monthly" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setView("monthly")}
-              >
-                Monthly
-              </Button>
-            </div>
           )}
         </div>
-        <div className="h-[280px]">
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="h-[300px]">
           {isEmpty ? (
-            <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/20">
-              <p className="text-muted-foreground text-sm">
-                No spending data to display.
-              </p>
+            <div className="flex h-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-muted/10">
+              <BarChart3 className="text-muted-foreground/60 size-10" />
+              <p className="text-muted-foreground text-sm">No spending in this range</p>
+              <p className="text-muted-foreground/80 text-xs">Try a different date range or add expenses</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
